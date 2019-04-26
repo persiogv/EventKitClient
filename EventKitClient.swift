@@ -8,6 +8,10 @@
 
 import EventKit
 
+protocol EventKitClientDelegate: class {
+    func eventKitClient(_ client: EventKitClient, didReceiveStoreChangedNotification notification: Notification)
+}
+
 class EventKitClient {
     
     typealias EventsCompletion = (@escaping () throws -> [EKEvent]) -> Void
@@ -22,6 +26,25 @@ class EventKitClient {
     }
     
     private lazy var store: EKEventStore = EKEventStore()
+    private weak var delegate: EventKitClientDelegate?
+    
+    required init(delegate: EventKitClientDelegate? = nil) {
+        self.delegate = delegate
+        
+        guard delegate == nil else {
+            NotificationCenter.default.addObserver(self, selector: #selector(storeChanged(_:)), name: .EKEventStoreChanged, object: nil)
+            return
+        }
+    }
+    
+    @objc func storeChanged(_ sender: Notification) {
+        guard let delegate = delegate else { return }
+        delegate.eventKitClient(self, didReceiveStoreChangedNotification: sender)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
 }
 
 // MARK: - First steps
