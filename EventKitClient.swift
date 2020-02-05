@@ -8,7 +8,7 @@
 
 import EventKit
 
-protocol EventKitClientDelegate: class {
+protocol EventKitClientDelegate: AnyObject {
     func eventKitClient(_ client: EventKitClient, didReceiveStoreChangedNotification notification: Notification)
 }
 
